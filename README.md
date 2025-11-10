@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://yokko405.github.io/meditation-app/favicon-192.png" alt="瞑想タイマー" width="64" height="64">
+</div>
+
 # 瞑想タイマー - Inner Peace
 
 美しいグラデーション背景とシンプルなUIを持つ瞑想タイマーアプリです。
