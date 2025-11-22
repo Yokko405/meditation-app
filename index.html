@@ -19,22 +19,35 @@
         }
 
         body {
-            font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-            overflow: hidden;
+            font-family: 'Noto Sans JP', sans-serif;
+            background: radial-gradient(circle at top, rgba(123, 104, 238, 0.9), rgba(72, 61, 139, 0.95));
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            color: white;
         }
 
         #root {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .app {
             width: 100%;
-            height: 100%;
+            min-height: 100vh;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px 0;
         }
 
         /* 背景のグラデーション */
@@ -80,11 +93,11 @@
         /* 上部のfavicon */
         .top-favicon {
             position: absolute;
-            top: 30px;
+            top: max(20px, 2vh);
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 80px;
+            width: min(80px, 10vh);
+            height: min(80px, 10vh);
             z-index: 10;
             pointer-events: none;
             animation: floatIcon 4s ease-in-out infinite;
@@ -126,24 +139,26 @@
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(20px);
             border-radius: 30px;
-            padding: 50px 40px;
+            padding: clamp(20px, 3vh, 40px) clamp(20px, 5vw, 40px) clamp(30px, 4vh, 50px);
+            margin: clamp(100px, 15vh, 130px) auto clamp(20px, 3vh, 40px);
             max-width: 600px;
             width: 90%;
+            position: relative;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
             color: white;
         }
 
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: clamp(1.8rem, 4vh, 2.5rem);
+            margin-bottom: clamp(5px, 1vh, 10px);
             font-weight: 300;
             letter-spacing: 2px;
         }
 
         .subtitle {
-            font-size: 1rem;
-            margin-bottom: 40px;
+            font-size: clamp(0.85rem, 2vh, 1rem);
+            margin-bottom: clamp(20px, 3vh, 40px);
             opacity: 0.9;
             font-weight: 300;
         }
@@ -151,18 +166,19 @@
         /* 時間選択ボタン */
         .time-selection {
             display: flex;
-            gap: 20px;
+            gap: clamp(10px, 2vw, 20px);
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: clamp(20px, 3vh, 40px);
+            flex-wrap: wrap;
         }
 
         .time-btn {
             background: rgba(255, 255, 255, 0.25);
             border: 2px solid rgba(255, 255, 255, 0.4);
             color: rgba(50, 50, 50, 0.9);
-            padding: 15px 30px;
+            padding: clamp(10px, 2vh, 15px) clamp(20px, 4vw, 30px);
             border-radius: 15px;
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 2vh, 1.2rem);
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
@@ -181,10 +197,12 @@
 
         /* タイマー表示 */
         .timer-display {
-            font-size: 5rem;
+            font-size: clamp(3rem, 8vh, 5rem);
             font-weight: 200;
-            margin: 40px 0;
-            letter-spacing: 5px;
+            margin: clamp(20px, 3vh, 40px) 0;
+            letter-spacing: clamp(2px, 0.5vw, 5px);
+            position: relative;
+            z-index: 1;
         }
 
         /* プログレスバー */
@@ -193,8 +211,10 @@
             height: 8px;
             background: rgba(255, 255, 255, 0.2);
             border-radius: 10px;
-            margin: 30px 0;
+            margin: clamp(15px, 2vh, 30px) 0;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
 
         .progress-bar {
@@ -209,13 +229,15 @@
             background: white;
             color: #667eea;
             border: none;
-            padding: 20px 50px;
+            padding: clamp(15px, 2.5vh, 20px) clamp(35px, 6vw, 50px);
             border-radius: 50px;
-            font-size: 1.3rem;
+            font-size: clamp(1.1rem, 2.2vh, 1.3rem);
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
-            margin: 20px 10px;
+            margin: clamp(10px, 2vh, 20px) 10px;
+            position: relative;
+            z-index: 1;
         }
 
         .control-btn:hover {
@@ -230,19 +252,47 @@
 
         /* 記録表示 */
         .stats {
-            margin-top: 40px;
-            padding-top: 30px;
+            margin-top: clamp(20px, 3vh, 40px);
+            padding-top: clamp(15px, 2vh, 30px);
             border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .bgm-selection {
+            margin: clamp(15px, 2vh, 30px) 0 clamp(5px, 1vh, 10px);
+            text-align: left;
+        }
+
+        .bgm-selection label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            opacity: 0.85;
+        }
+
+        .bgm-select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.2);
+            color: #1f1f1f;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.2s ease;
+        }
+
+        .bgm-select:focus {
+            border-color: white;
         }
 
         .stats-item {
             display: inline-block;
-            margin: 0 20px;
-            font-size: 1rem;
+            margin: 0 clamp(10px, 2vw, 20px);
+            font-size: clamp(0.9rem, 1.8vh, 1rem);
         }
 
         .stats-number {
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 4vh, 2.5rem);
             font-weight: 300;
             display: block;
             margin-bottom: 5px;
@@ -255,41 +305,49 @@
 
         /* 呼吸ビジュアル */
         .breathing-circle {
-            width: 200px;
-            height: 200px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: clamp(250px, 35vh, 350px);
+            height: clamp(250px, 35vh, 350px);
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 30px auto;
+            background: rgba(255, 255, 255, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
             animation: breathe 8s ease-in-out infinite;
+            z-index: 0;
+            pointer-events: none;
         }
 
         @keyframes breathe {
             0%, 100% {
-                transform: scale(1);
-                opacity: 0.5;
+                transform: translate(-50%, -50%) scale(0.9);
+                opacity: 0.3;
             }
             50% {
-                transform: scale(1.2);
-                opacity: 0.8;
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.5;
             }
         }
 
         .breathing-text {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 2vh, 1.2rem);
             font-weight: 300;
+            opacity: 0.6;
         }
 
         /* メッセージ表示 */
         .message {
-            font-size: 1.2rem;
-            margin: 20px 0;
-            min-height: 60px;
+            font-size: clamp(1rem, 2vh, 1.2rem);
+            margin: clamp(10px, 2vh, 20px) 0;
+            min-height: clamp(40px, 6vh, 60px);
             font-weight: 300;
             opacity: 0.9;
             line-height: 1.6;
+            position: relative;
+            z-index: 1;
         }
 
         /* 振り返りモーダル */
@@ -594,7 +652,9 @@
         /* スマホ対応 */
         @media (max-width: 768px) {
             .container {
-                padding: 30px 20px;
+                padding: 35px 20px 40px;
+                margin-top: 100px;
+                margin-bottom: 30px;
                 width: 95%;
             }
 
@@ -632,6 +692,10 @@
                 margin: 20px 0;
             }
 
+            .bgm-selection {
+                margin: 25px 0 5px;
+            }
+
             .control-btn {
                 padding: 12px 25px;
                 font-size: 0.95rem;
@@ -653,7 +717,9 @@
 
         @media (max-width: 480px) {
             .container {
-                padding: 25px 15px;
+                padding: 30px 15px 35px;
+                margin-top: 90px;
+                margin-bottom: 40px;
             }
 
             h1 {
@@ -667,6 +733,10 @@
             .time-btn {
                 padding: 10px 15px;
                 font-size: 0.9rem;
+            }
+
+            .bgm-selection {
+                margin: 20px 0 5px;
             }
         }
     </style>
@@ -721,6 +791,14 @@
             ]
         };
 
+        const BGM_TRACKS = [
+            { id: 'bgm1', label: 'メンタルリセット', path: 'BGM/bgm1-mental-reset.mp3' },
+            { id: 'bgm2', label: 'ホワイト・ピンクノイズ', path: 'BGM/bgm2-white-pink-noise.mp3' },
+            { id: 'bgm3', label: 'ユニバース・フローティング', path: 'BGM/bgm3-universe-floating.mp3' },
+            { id: 'bgm4', label: 'スピリチュアル・ヘビー', path: 'BGM/bgm4-spiritual-heavy.mp3' },
+            { id: 'bgm5', label: 'ディープ・サイレンス', path: 'BGM/bgm5-deep-silence.mp3' }
+        ];
+
         function MeditationApp() {
             const [selectedTime, setSelectedTime] = useState(null);
             const [isActive, setIsActive] = useState(false);
@@ -732,12 +810,15 @@
             const [mood, setMood] = useState('');
             const [reflection, setReflection] = useState('');
             const [reflections, setReflections] = useState([]);
+            const [selectedBGMId, setSelectedBGMId] = useState('bgm5');
             
             const audioRef = useRef(null);
             const timerRef = useRef(null);
             const scriptIndexRef = useRef(0);
             const fadeOutIntervalRef = useRef(null);
             const lastSpeechPromiseRef = useRef(null);
+
+            const selectedBGM = BGM_TRACKS.find(track => track.id === selectedBGMId) || BGM_TRACKS[0];
 
             // 午前1時を基準に日付を取得する関数
             const getDateString = () => {
@@ -799,14 +880,51 @@
                 }
             }, []);
 
+            // BGM選択の読み込み
+            useEffect(() => {
+                const savedBGM = localStorage.getItem('selectedBGM');
+                if (savedBGM && BGM_TRACKS.some(track => track.id === savedBGM)) {
+                    setSelectedBGMId(savedBGM);
+                }
+            }, []);
+
             // 時間選択
             const selectTime = (minutes) => {
                 if (isActive) return;
                 setSelectedTime(minutes);
                 setTimeLeft(minutes * 60);
-                setCurrentMessage('準備ができたら開始ボタンを押してください');
                 scriptIndexRef.current = 0;
             };
+
+            const handleBGMPlaybackError = (error) => {
+                if (error?.name === 'AbortError') {
+                    console.info('BGM再生が別の操作によって中断されました');
+                    return;
+                }
+                console.error('BGM再生エラー:', error);
+            };
+
+            useEffect(() => {
+                if (!selectedBGM) return;
+                localStorage.setItem('selectedBGM', selectedBGM.id);
+
+                if (!audioRef.current) return;
+                const audio = audioRef.current;
+                const wasPlaying = !audio.paused && !audio.ended && audio.currentTime > 0;
+
+                audio.pause();
+                audio.src = selectedBGM.path;
+                audio.load();
+                audio.dataset.trackId = selectedBGM.id;
+                audio.currentTime = 0;
+
+                if (wasPlaying) {
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(handleBGMPlaybackError);
+                    }
+                }
+            }, [selectedBGM]);
 
             // 音声読み上げ（Promiseを返して再生完了を待てるように）
             const speak = (text) => {
@@ -845,17 +963,24 @@
                 lastSpeechPromiseRef.current = null; // 最後の音声Promiseをクリア
 
                 // BGM再生（エラーハンドリング付き）
-                if (audioRef.current) {
-                    audioRef.current.volume = 0.3; // 音量を30%に設定（ナビより小さく）
+                if (audioRef.current && selectedBGM) {
+                    const audio = audioRef.current;
+                    if (audio.dataset.trackId !== selectedBGM.id) {
+                        audio.pause();
+                        audio.src = selectedBGM.path;
+                        audio.load();
+                        audio.dataset.trackId = selectedBGM.id;
+                    }
+
+                    audio.currentTime = 0;
+                    audio.volume = 0.3; // 音量を30%に設定（ナビより小さく）
                     
-                    const playPromise = audioRef.current.play();
+                    const playPromise = audio.play();
                     
                     if (playPromise !== undefined) {
                         playPromise.then(() => {
                             console.log('BGM再生開始');
-                        }).catch(error => {
-                            console.error('BGM再生エラー:', error);
-                        });
+                        }).catch(handleBGMPlaybackError);
                     }
                 }
 
@@ -1140,63 +1265,75 @@
                         <p className="subtitle">Inner Peace</p>
 
                         {!isActive && (
-                            <div className="time-selection">
-                                <button 
-                                    className={`time-btn ${selectedTime === 5 ? 'active' : ''}`}
-                                    onClick={() => selectTime(5)}
-                                >
-                                    5分
-                                </button>
-                                <button 
-                                    className={`time-btn ${selectedTime === 10 ? 'active' : ''}`}
-                                    onClick={() => selectTime(10)}
-                                >
-                                    10分
-                                </button>
-                                <button 
-                                    className={`time-btn ${selectedTime === 15 ? 'active' : ''}`}
-                                    onClick={() => selectTime(15)}
-                                >
-                                    15分
-                                </button>
-                                <button 
-                                    className={`time-btn ${selectedTime === 30 ? 'active' : ''}`}
-                                    onClick={() => selectTime(30)}
-                                >
-                                    30分
-                                </button>
-                            </div>
+                            <>
+                                <div className="time-selection">
+                                    <button 
+                                        className={`time-btn ${selectedTime === 5 ? 'active' : ''}`}
+                                        onClick={() => selectTime(5)}
+                                    >
+                                        5分
+                                    </button>
+                                    <button 
+                                        className={`time-btn ${selectedTime === 10 ? 'active' : ''}`}
+                                        onClick={() => selectTime(10)}
+                                    >
+                                        10分
+                                    </button>
+                                    <button 
+                                        className={`time-btn ${selectedTime === 15 ? 'active' : ''}`}
+                                        onClick={() => selectTime(15)}
+                                    >
+                                        15分
+                                    </button>
+                                    <button 
+                                        className={`time-btn ${selectedTime === 30 ? 'active' : ''}`}
+                                        onClick={() => selectTime(30)}
+                                    >
+                                        30分
+                                    </button>
+                                </div>
+
+                                <div className="bgm-selection">
+                                    <label htmlFor="bgm-select">BGM</label>
+                                    <select
+                                        id="bgm-select"
+                                        className="bgm-select"
+                                        value={selectedBGMId}
+                                        onChange={(event) => setSelectedBGMId(event.target.value)}
+                                    >
+                                        {BGM_TRACKS.map(track => (
+                                            <option key={track.id} value={track.id}>
+                                                {track.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {selectedTime && (
+                                    <button className="control-btn" onClick={startMeditation}>
+                                        開始
+                                    </button>
+                                )}
+                            </>
                         )}
 
-                        {selectedTime && (
+                        {isActive && (
                             <>
+                                <div className="breathing-circle"></div>
+                                
                                 <div className="timer-display">
                                     {formatTime(timeLeft)}
                                 </div>
 
-                                {isActive && (
-                                    <>
-                                        <div className="progress-container">
-                                            <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-                                        </div>
-
-                                        <div className="breathing-circle">
-                                            <span className="breathing-text">呼吸</span>
-                                        </div>
-                                    </>
-                                )}
+                                <div className="progress-container">
+                                    <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+                                </div>
 
                                 <div className="message">{currentMessage}</div>
 
-                                {!isActive ? (
-                                    <button className="control-btn" onClick={startMeditation}>
-                                        開始
-                                    </button>
-                                ) : (
-                                    <button className="control-btn stop" onClick={stopMeditation}>
-                                        停止
-                                    </button>
-                                )}
+                                <button className="control-btn stop" onClick={stopMeditation}>
+                                    停止
+                                </button>
                             </>
                         )}
 
