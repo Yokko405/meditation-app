@@ -269,20 +269,65 @@
             opacity: 0.85;
         }
 
-        .bgm-select {
+        .bgm-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bgm-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px 16px;
             border-radius: 15px;
             border: 2px solid rgba(255, 255, 255, 0.4);
             background: rgba(255, 255, 255, 0.2);
             color: #1f1f1f;
-            font-size: 1rem;
-            outline: none;
-            transition: border 0.2s ease;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            text-align: left;
+            gap: 16px;
         }
 
-        .bgm-select:focus {
+        .bgm-item:hover {
             border-color: white;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .bgm-item.active {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.45);
+        }
+
+        .bgm-item.playing {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .bgm-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .bgm-item-selected {
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .bgm-item-action {
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .bgm-item.playing .bgm-item-action {
+            color: #4f46e5;
         }
 
         .stats-item {
@@ -745,7 +790,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
 
         // ナビゲーション内容
         const MEDITATION_SCRIPTS = {
@@ -810,14 +855,31 @@
             const [reflection, setReflection] = useState('');
             const [reflections, setReflections] = useState([]);
             const [selectedBGMId, setSelectedBGMId] = useState('bgm5');
+            const [previewingTrackId, setPreviewingTrackId] = useState(null);
             
             const audioRef = useRef(null);
+            const previewAudioRef = useRef(null);
+            const previewTimeoutRef = useRef(null);
             const timerRef = useRef(null);
             const scriptIndexRef = useRef(0);
             const fadeOutIntervalRef = useRef(null);
             const lastSpeechPromiseRef = useRef(null);
 
             const selectedBGM = BGM_TRACKS.find(track => track.id === selectedBGMId) || BGM_TRACKS[0];
+
+            const stopPreview = useCallback(() => {
+                if (previewTimeoutRef.current) {
+                    clearTimeout(previewTimeoutRef.current);
+                    previewTimeoutRef.current = null;
+                }
+
+                const previewAudio = previewAudioRef.current;
+                if (previewAudio) {
+                    previewAudio.pause();
+                    previewAudio.currentTime = 0;
+                }
+                setPreviewingTrackId(null);
+            }, []);
 
             // 午前1時を基準に日付を取得する関数
             const getDateString = () => {
@@ -887,6 +949,27 @@
                 }
             }, []);
 
+            useEffect(() => {
+                const previewAudio = new Audio();
+                previewAudio.preload = 'auto';
+                previewAudioRef.current = previewAudio;
+
+                previewAudio.addEventListener('ended', stopPreview);
+                previewAudio.addEventListener('error', handleBGMPlaybackError);
+
+                return () => {
+                    previewAudio.pause();
+                    previewAudio.removeEventListener('ended', stopPreview);
+                    previewAudio.removeEventListener('error', handleBGMPlaybackError);
+                };
+            }, [stopPreview, handleBGMPlaybackError]);
+
+            useEffect(() => {
+                return () => {
+                    stopPreview();
+                };
+            }, [stopPreview]);
+
             // 時間選択
             const selectTime = (minutes) => {
                 if (isActive) return;
@@ -895,12 +978,51 @@
                 scriptIndexRef.current = 0;
             };
 
-            const handleBGMPlaybackError = (error) => {
+            const handleBGMPlaybackError = useCallback((error) => {
                 if (error?.name === 'AbortError') {
                     console.info('BGM再生が別の操作によって中断されました');
                     return;
                 }
                 console.error('BGM再生エラー:', error);
+            }, []);
+
+            const handlePreviewToggle = (trackId) => {
+                const previewAudio = previewAudioRef.current;
+                const track = BGM_TRACKS.find(item => item.id === trackId);
+                if (!previewAudio || !track) return;
+
+                if (selectedBGMId !== trackId) {
+                    setSelectedBGMId(trackId);
+                }
+
+                if (previewingTrackId === trackId && !previewAudio.paused) {
+                    stopPreview();
+                    return;
+                }
+
+                previewAudio.pause();
+                setPreviewingTrackId(null);
+                previewAudio.src = track.path;
+                previewAudio.currentTime = 0;
+                previewAudio.volume = 0.6;
+
+                const playPromise = previewAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            setPreviewingTrackId(trackId);
+                            if (previewTimeoutRef.current) {
+                                clearTimeout(previewTimeoutRef.current);
+                            }
+                            previewTimeoutRef.current = setTimeout(() => {
+                                stopPreview();
+                            }, 30000);
+                        })
+                        .catch((error) => {
+                            handleBGMPlaybackError(error);
+                            setPreviewingTrackId(null);
+                        });
+                }
             };
 
             useEffect(() => {
@@ -956,6 +1078,7 @@
             const startMeditation = () => {
                 if (!selectedTime) return;
                 
+                stopPreview();
                 setIsActive(true);
                 setTimeLeft(selectedTime * 60);
                 scriptIndexRef.current = 0;
@@ -993,6 +1116,7 @@
 
             // 瞑想停止
             const stopMeditation = (skipCancelSpeech = false) => {
+                stopPreview();
                 setIsActive(false);
                 clearInterval(timerRef.current);
                 
@@ -1293,19 +1417,28 @@
                                 </div>
 
                                 <div className="bgm-selection">
-                                    <label htmlFor="bgm-select">BGM</label>
-                                    <select
-                                        id="bgm-select"
-                                        className="bgm-select"
-                                        value={selectedBGMId}
-                                        onChange={(event) => setSelectedBGMId(event.target.value)}
-                                    >
+                                    <label>BGM（タップで試聴）</label>
+                                    <div className="bgm-list">
                                         {BGM_TRACKS.map(track => (
-                                            <option key={track.id} value={track.id}>
-                                                {track.label}
-                                            </option>
+                                            <button
+                                                key={track.id}
+                                                type="button"
+                                                className={`bgm-item ${selectedBGMId === track.id ? 'active' : ''} ${previewingTrackId === track.id ? 'playing' : ''}`}
+                                                onClick={() => handlePreviewToggle(track.id)}
+                                                aria-pressed={selectedBGMId === track.id}
+                                            >
+                                                <div className="bgm-item-info">
+                                                    <span className="bgm-item-label">{track.label}</span>
+                                                    {selectedBGMId === track.id && (
+                                                        <span className="bgm-item-selected">選択中</span>
+                                                    )}
+                                                </div>
+                                                <span className="bgm-item-action">
+                                                    {previewingTrackId === track.id ? '⏹' : '🎧'}
+                                                </span>
+                                            </button>
                                         ))}
-                                    </select>
+                                    </div>
                                 </div>
 
                                 {selectedTime && (
