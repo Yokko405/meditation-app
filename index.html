@@ -638,6 +638,149 @@
             background: #e0e0e0;
         }
 
+        /* 履歴ボタン */
+        .history-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: rgba(50, 50, 50, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .history-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* 履歴モーダル */
+        .history-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .history-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: #333;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s ease;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .history-title {
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: 300;
+        }
+
+        .history-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            padding: 5px;
+            transition: color 0.2s ease;
+        }
+
+        .history-close-btn:hover {
+            color: #333;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 1rem;
+        }
+
+        .history-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-item-date {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .history-item-duration {
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 500;
+            background: rgba(102, 126, 234, 0.15);
+            padding: 2px 8px;
+            border-radius: 8px;
+        }
+
+        .history-item-mood {
+            font-size: 1.2rem;
+        }
+
+        .history-item-text {
+            font-size: 0.95rem;
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+
+        .history-item-delete {
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            color: #999;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: color 0.2s ease;
+        }
+
+        .history-item-delete:hover {
+            color: #e74c3c;
+        }
+
         /* 過去の振り返り表示 */
         .reflections-list {
             margin-top: 30px;
@@ -851,6 +994,7 @@
             const [streak, setStreak] = useState(0);
             const [showReflection, setShowReflection] = useState(false);
             const [showNavigation, setShowNavigation] = useState(false);
+            const [showHistory, setShowHistory] = useState(false);
             const [mood, setMood] = useState('');
             const [reflection, setReflection] = useState('');
             const [reflections, setReflections] = useState([]);
@@ -1096,6 +1240,7 @@
 
                     audio.currentTime = 0;
                     audio.volume = 0.3; // 音量を30%に設定（ナビより小さく）
+                    audio.loop = true; // ループ再生を確実に設定
                     
                     const playPromise = audio.play();
                     
@@ -1310,6 +1455,16 @@
                 scriptIndexRef.current = 0;
             };
 
+            // 履歴モーダルを開く
+            const openHistory = () => {
+                setShowHistory(true);
+            };
+
+            // 履歴モーダルを閉じる
+            const closeHistory = () => {
+                setShowHistory(false);
+            };
+
             // ホームに戻る
             const goHome = () => {
                 setShowNavigation(false);
@@ -1475,6 +1630,12 @@
                                 <span className="stats-label">連続日数</span>
                             </div>
                         </div>
+
+                        {!isActive && (
+                            <button className="history-btn" onClick={openHistory}>
+                                📖 振り返り履歴
+                            </button>
+                        )}
                     </div>
 
                     <audio ref={audioRef} loop preload="auto"></audio>
@@ -1557,6 +1718,53 @@
                                         ホームに戻る
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 履歴モーダル */}
+                    {showHistory && (
+                        <div className="history-modal" onClick={closeHistory}>
+                            <div className="history-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="history-header">
+                                    <h2 className="history-title">📖 振り返り履歴</h2>
+                                    <button className="history-close-btn" onClick={closeHistory}>
+                                        ✕
+                                    </button>
+                                </div>
+
+                                {reflections.length === 0 ? (
+                                    <div className="history-empty">
+                                        まだ振り返りがありません
+                                    </div>
+                                ) : (
+                                    reflections.map((item) => (
+                                        <div key={item.id} className="history-item">
+                                            <div className="history-item-header">
+                                                <div className="history-item-meta">
+                                                    <span className="history-item-date">
+                                                        {new Date(item.date).toLocaleDateString('ja-JP')}
+                                                    </span>
+                                                    {item.duration && (
+                                                        <span className="history-item-duration">
+                                                            {item.duration}分
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="history-item-mood">{item.mood}</span>
+                                            </div>
+                                            {item.reflection && (
+                                                <p className="history-item-text">{item.reflection}</p>
+                                            )}
+                                            <button
+                                                className="history-item-delete"
+                                                onClick={() => deleteReflection(item.id)}
+                                            >
+                                                削除
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     )}
