@@ -981,7 +981,7 @@
 
         const BGM_TRACKS = [
             { id: 'bgm2', label: 'ホワイト・ピンクノイズ', path: 'BGM/bgm2-white-pink-noise.mp3' },
-            { id: 'bgm3', label: 'やわらぐ光のあいだ', path: 'BGM/bgm3-yawaragu.mp3' },
+            { id: 'bgm3', label: 'やわらぐ光のあいだ', path: 'BGM/bgm3-yawaragu.mp3', fallbackPath: 'BGM/やわらぐ光のあいだ.mp3' },
             { id: 'bgm4', label: 'スピリチュアル・ヘビー', path: 'BGM/bgm4-spiritual-heavy.mp3' },
             { id: 'bgm5', label: 'ディープ・サイレンス', path: 'BGM/bgm5-deep-silence.mp3' }
         ];
@@ -1115,6 +1115,18 @@
                 };
             }, [stopPreview]);
 
+            useEffect(() => {
+                const audio = audioRef.current;
+                if (!audio) return;
+
+                const handleError = (event) => handleBGMPlaybackError(event, audio, selectedBGM);
+                audio.addEventListener('error', handleError);
+
+                return () => {
+                    audio.removeEventListener('error', handleError);
+                };
+            }, [handleBGMPlaybackError, selectedBGM]);
+
             // 時間選択
             const selectTime = (minutes) => {
                 if (isActive) return;
@@ -1123,12 +1135,32 @@
                 scriptIndexRef.current = 0;
             };
 
-            const handleBGMPlaybackError = useCallback((error) => {
-                if (error?.name === 'AbortError') {
+            const handleBGMPlaybackError = useCallback((errorOrEvent, audioElement, track) => {
+                const audioEl = audioElement || (errorOrEvent?.target instanceof HTMLAudioElement ? errorOrEvent.target : null);
+                const trackId = track?.id || audioEl?.dataset?.trackId;
+                const targetTrack = track || BGM_TRACKS.find(item => item.id === trackId);
+
+                const errorName = errorOrEvent?.name || errorOrEvent?.type;
+                if (errorName === 'AbortError') {
                     console.info('BGM再生が別の操作によって中断されました');
                     return;
                 }
-                console.error('BGM再生エラー:', error);
+                
+                if (targetTrack?.fallbackPath && audioEl && audioEl.src && !audioEl.src.includes(targetTrack.fallbackPath)) {
+                    console.warn(`BGM再生エラー。フォールバックを試行: ${targetTrack.label}`);
+                    audioEl.src = targetTrack.fallbackPath;
+                    audioEl.load();
+                    audioEl.dataset.trackId = targetTrack.id;
+                    const retry = audioEl.play();
+                    if (retry?.catch) {
+                        retry.catch((fallbackError) => {
+                            console.error('BGMフォールバック再生エラー:', fallbackError);
+                        });
+                    }
+                    return;
+                }
+
+                console.error('BGM再生エラー:', errorOrEvent);
             }, []);
 
             const handlePreviewToggle = (trackId) => {
@@ -1147,6 +1179,7 @@
 
                 previewAudio.pause();
                 setPreviewingTrackId(null);
+                previewAudio.dataset.trackId = track.id;
                 previewAudio.src = track.path;
                 previewAudio.currentTime = 0;
                 previewAudio.volume = 0.6;
@@ -1164,7 +1197,7 @@
                             }, 30000);
                         })
                         .catch((error) => {
-                            handleBGMPlaybackError(error);
+                            handleBGMPlaybackError(error, previewAudio, track);
                             setPreviewingTrackId(null);
                         });
                 }
@@ -1187,7 +1220,7 @@
                 if (wasPlaying) {
                     const playPromise = audio.play();
                     if (playPromise !== undefined) {
-                        playPromise.catch(handleBGMPlaybackError);
+                        playPromise.catch((error) => handleBGMPlaybackError(error, audio, selectedBGM));
                     }
                 }
             }, [selectedBGM]);
@@ -1248,7 +1281,7 @@
                     if (playPromise !== undefined) {
                         playPromise.then(() => {
                             console.log('BGM再生開始');
-                        }).catch(handleBGMPlaybackError);
+                        }).catch((error) => handleBGMPlaybackError(error, audio, selectedBGM));
                     }
                 }
 
