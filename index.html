@@ -981,7 +981,7 @@
 
         const BGM_TRACKS = [
             { id: 'bgm2', label: 'ホワイト・ピンクノイズ', path: 'BGM/bgm2-white-pink-noise.mp3' },
-            { id: 'bgm3', label: 'ユニバース・フローティング', path: 'BGM/bgm3-universe-floating.mp3' },
+            { id: 'bgm3', label: 'やわらぐ光のあいだ', path: 'BGM/やわらぐ光のあいだ.mp3' },
             { id: 'bgm4', label: 'スピリチュアル・ヘビー', path: 'BGM/bgm4-spiritual-heavy.mp3' },
             { id: 'bgm5', label: 'ディープ・サイレンス', path: 'BGM/bgm5-deep-silence.mp3' }
         ];
@@ -1056,32 +1056,33 @@
                 const lastMeditation = new Date(lastMeditationTimestamp);
                 const lastMeditationJST = new Date(lastMeditation.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }));
                 
-                // 午前1時基準で日付を計算
+                // 午前1時基準で日付を計算（午前0時〜0時59分は前日扱い）
                 const getDateKey = (date) => {
                     const dateKey = new Date(date);
                     if (dateKey.getHours() < 1) {
                         dateKey.setDate(dateKey.getDate() - 1);
                     }
-                    return dateKey.toDateString();
+                    // 時刻をリセットして日付のみを比較できるようにする
+                    dateKey.setHours(0, 0, 0, 0);
+                    return dateKey.getTime();
                 };
                 
                 const todayKey = getDateKey(jstNow);
                 const lastMeditationDateKey = getDateKey(lastMeditationJST);
                 
-                // 経過時間を計算（ミリ秒）
-                const timeDiff = jstNow.getTime() - lastMeditationJST.getTime();
-                const hoursDiff = timeDiff / (1000 * 60 * 60);
+                // 日数の差を計算（ミリ秒から日数へ）
+                const daysDiff = (todayKey - lastMeditationDateKey) / (1000 * 60 * 60 * 24);
                 
-                if (lastMeditationDateKey === todayKey) {
+                if (daysDiff === 0) {
                     // 今日（午前1時基準）に瞑想済み
                     setStreak(parseInt(savedStreak || '0'));
-                } else if (hoursDiff > 48) {
-                    // 48時間以上経過していたら連続日数をリセット
+                } else if (daysDiff === 1) {
+                    // 昨日（午前1時基準）に瞑想済み - 連続日数を保持
+                    setStreak(parseInt(savedStreak || '0'));
+                } else {
+                    // 2日以上経過していたら連続日数をリセット
                     setStreak(0);
                     localStorage.setItem('meditationStreak', '0');
-                } else {
-                    // 48時間以内（連続日数を保持）
-                    setStreak(parseInt(savedStreak || '0'));
                 }
             }, []);
 
@@ -1320,18 +1321,20 @@
                     }, timeStep);
                 }
                 
-                // 記録を保存（午前1時基準、24時間以内に瞑想した場合のみ連続日数を更新）
+                // 記録を保存（午前1時基準、前日に瞑想した場合のみ連続日数を更新）
                 const now = new Date();
                 const jstNow = new Date(now.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }));
                 const lastMeditationTimestamp = localStorage.getItem('lastMeditationTimestamp');
                 
-                // 午前1時基準で日付を計算
+                // 午前1時基準で日付を計算（午前0時〜0時59分は前日扱い）
                 const getDateKey = (date) => {
                     const dateKey = new Date(date);
                     if (dateKey.getHours() < 1) {
                         dateKey.setDate(dateKey.getDate() - 1);
                     }
-                    return dateKey.toDateString();
+                    // 時刻をリセットして日付のみを比較できるようにする
+                    dateKey.setHours(0, 0, 0, 0);
+                    return dateKey.getTime();
                 };
                 
                 const todayKey = getDateKey(jstNow);
@@ -1342,20 +1345,19 @@
                     const lastMeditationJST = new Date(lastMeditation.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }));
                     const lastMeditationDateKey = getDateKey(lastMeditationJST);
                     
-                    // 経過時間を計算（時間）
-                    const timeDiff = jstNow.getTime() - lastMeditationJST.getTime();
-                    const hoursDiff = timeDiff / (1000 * 60 * 60);
+                    // 日数の差を計算（ミリ秒から日数へ）
+                    const daysDiff = (todayKey - lastMeditationDateKey) / (1000 * 60 * 60 * 24);
                     
-                    if (lastMeditationDateKey === todayKey) {
+                    if (daysDiff === 0) {
                         // 今日（午前1時基準）に既に瞑想済みの場合は連続日数を増やさない
                         // 連続日数はそのまま
-                    } else if (hoursDiff <= 48) {
-                        // 48時間以内で、かつ新しい日（午前1時基準）なら連続日数を増やす
+                    } else if (daysDiff === 1) {
+                        // 前日（午前1時基準）に瞑想済みなら連続日数を増やす
                         newStreak = streak + 1;
                         setStreak(newStreak);
                         localStorage.setItem('meditationStreak', newStreak.toString());
                     } else {
-                        // 48時間以上経過していたら1にリセット（新しい連続の開始）
+                        // 2日以上経過していたら1にリセット（新しい連続の開始）
                         newStreak = 1;
                         setStreak(newStreak);
                         localStorage.setItem('meditationStreak', '1');
